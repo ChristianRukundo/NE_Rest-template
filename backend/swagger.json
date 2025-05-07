@@ -1,0 +1,1537 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Inventory Management System API",
+    "version": "1.0.0",
+    "description": "API documentation for Inventory Management System"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "User ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address"
+          },
+          "first_name": {
+            "type": "string",
+            "description": "First name"
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Last name"
+          },
+          "role_id": {
+            "type": "integer",
+            "description": "Role ID"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "description": "Whether email is verified"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update date"
+          }
+        }
+      },
+      "Role": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Role ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Role name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Role description"
+          }
+        }
+      },
+      "Permission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Permission ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Permission name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Permission description"
+          }
+        }
+      },
+      "InventoryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Item ID"
+          },
+          "item_name": {
+            "type": "string",
+            "description": "Item name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Item description"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Stock Keeping Unit"
+          },
+          "unit_price": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Unit price"
+          },
+          "sale_price": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Sale price"
+          },
+          "current_stock": {
+            "type": "integer",
+            "description": "Current stock"
+          },
+          "reorder_point": {
+            "type": "integer",
+            "description": "Reorder point"
+          },
+          "image_url": {
+            "type": "string",
+            "description": "Image URL"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update date"
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "The auto-generated ID of the transaction"
+          },
+          "item_id": {
+            "type": "integer",
+            "description": "The ID of the item"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["sale", "initial_stock", "adjustment_increase", "adjustment_decrease"],
+            "description": "The type of transaction"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The quantity of the transaction"
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date of the transaction"
+          },
+          "user_id": {
+            "type": "integer",
+            "description": "The ID of the user who recorded the transaction"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes for the transaction"
+          },
+          "blockchain_tx_hash": {
+            "type": "string",
+            "description": "The blockchain transaction hash for verification"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date the transaction was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date the transaction was last updated"
+          }
+        }
+      },
+      "TransactionRequest": {
+        "type": "object",
+        "required": ["item_id", "transaction_type", "quantity"],
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "description": "The ID of the item"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": ["initial_stock", "adjustment_increase", "adjustment_decrease"],
+            "description": "The type of transaction"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The quantity of the transaction"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes for the transaction"
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date of the transaction (optional, defaults to current date/time)"
+          }
+        }
+      },
+      "BlockchainVerification": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "integer",
+            "description": "The ID of the transaction"
+          },
+          "blockchain_tx_hash": {
+            "type": "string",
+            "description": "The blockchain transaction hash"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "description": "Whether the blockchain transaction is valid"
+          },
+          "block_explorer_url": {
+            "type": "string",
+            "description": "URL to view the transaction on a blockchain explorer"
+          }
+        }
+      },
+      "BuyRequest": {
+        "type": "object",
+        "required": ["item_id", "quantity"],
+        "properties": {
+          "item_id": {
+            "type": "integer",
+            "description": "The ID of the item to buy"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The quantity to buy"
+          }
+        }
+      },
+      "BuyResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the purchase was successful"
+          },
+          "message": {
+            "type": "string",
+            "description": "A message describing the result"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "transaction": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The ID of the transaction"
+                  },
+                  "item_id": {
+                    "type": "integer",
+                    "description": "The ID of the item"
+                  },
+                  "transaction_type": {
+                    "type": "string",
+                    "description": "The type of transaction (sale)"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "description": "The quantity purchased"
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "description": "The ID of the user who made the purchase"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Additional notes for the transaction"
+                  },
+                  "blockchain_tx_hash": {
+                    "type": "string",
+                    "description": "The blockchain transaction hash for verification"
+                  }
+                }
+              },
+              "item": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The ID of the item"
+                  },
+                  "current_stock": {
+                    "type": "integer",
+                    "description": "The updated stock level"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password", "first_name", "last_name"],
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "409": {
+            "description": "Username or email already exists"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login a user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/auth/verify-email/{token}": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Verify email address",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Request password reset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email sent"
+          },
+          "404": {
+            "description": "Email not found"
+          }
+        }
+      }
+    },
+    "/auth/reset-password/{token}": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Reset password",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["password"],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get user profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update user profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all users",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a new user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "email", "password", "first_name", "last_name", "role_id"],
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "role_id": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Username or email already exists"
+          }
+        }
+      }
+    },
+    "/admin/users/{id}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get user by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "role_id": {
+                    "type": "integer"
+                  },
+                  "email_verified": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/admin/roles": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all roles",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of roles"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/permissions": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all permissions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of permissions"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/role": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Assign role to user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role_id"],
+                "properties": {
+                  "role_id": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assigned successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User or role not found"
+          }
+        }
+      }
+    },
+    "/admin/reports/inventory-summary": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Get inventory summary report",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inventory summary report"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/reports/transactions": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Get transactions report",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions report"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/reports/inventory-summary/document": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Get inventory summary report as document",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inventory summary report document"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/reports/inventory-summary/csv": {
+      "get": {
+        "tags": ["Reports"],
+        "summary": "Get inventory summary report as CSV",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inventory summary report CSV"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/items": {
+      "get": {
+        "tags": ["Items"],
+        "summary": "Get all items",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of items"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Items"],
+        "summary": "Create a new item",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["item_name", "SKU", "unit_price", "sale_price"],
+                "properties": {
+                  "item_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "SKU": {
+                    "type": "string"
+                  },
+                  "unit_price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "sale_price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "current_stock": {
+                    "type": "integer",
+                    "default": 0
+                  },
+                  "reorder_point": {
+                    "type": "integer"
+                  },
+                  "image_url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "SKU already exists"
+          }
+        }
+      }
+    },
+    "/items/{id}": {
+      "get": {
+        "tags": ["Items"],
+        "summary": "Get item by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item details"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Item not found"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Items"],
+        "summary": "Update item",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "item_name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "SKU": {
+                    "type": "string"
+                  },
+                  "unit_price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "sale_price": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "current_stock": {
+                    "type": "integer"
+                  },
+                  "reorder_point": {
+                    "type": "integer"
+                  },
+                  "image_url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Item updated successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Item not found"
+          },
+          "409": {
+            "description": "SKU already exists"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Items"],
+        "summary": "Delete item",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Item not found"
+          }
+        }
+      }
+    },
+    "/uploads/images": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload an image",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["image"],
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/shop/buy": {
+      "post": {
+        "summary": "Buy an item with blockchain recording",
+        "tags": ["Shop"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Purchase successful and recorded on blockchain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient stock"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "summary": "Get all transactions",
+        "tags": ["Transactions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term for item name or SKU"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": ["sale", "initial_stock", "adjustment_increase", "adjustment_decrease"]
+            },
+            "description": "Filter by transaction type"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter by start date"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter by end date"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new transaction (non-sale types) with blockchain recording",
+        "tags": ["Transactions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created successfully and recorded on blockchain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "transaction": {
+                          "$ref": "#/components/schemas/Transaction"
+                        },
+                        "item": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or insufficient stock"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "summary": "Get transaction by ID",
+        "tags": ["Transactions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "Transaction ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Transaction not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/transactions/{id}/verify-blockchain": {
+      "get": {
+        "summary": "Verify blockchain transaction",
+        "tags": ["Transactions"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true,
+            "description": "Transaction ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blockchain verification details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockchainVerification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Transaction not found or no blockchain record"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  }
+}

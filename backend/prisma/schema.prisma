@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      Int           @id @default(autoincrement())
+  username                String        @unique
+  email                   String        @unique
+  password                String
+  first_name              String
+  last_name               String
+  role                    Role          @relation(fields: [role_id], references: [id])
+  role_id                 Int
+  email_verified          Boolean       @default(false)
+  verification_token      String?
+  email_verification_code String?
+  reset_token             String?
+  reset_token_expires     DateTime?
+  created_at              DateTime      @default(now())
+  updated_at              DateTime      @updatedAt
+  transactions            Transaction[] @relation("RecordedBy")
+
+  @@map("users")
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role          Role       @relation(fields: [role_id], references: [id])
+  role_id       Int
+  permission    Permission @relation(fields: [permission_id], references: [id])
+  permission_id Int
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model InventoryItem {
+  id            Int           @id @default(autoincrement())
+  item_name     String
+  description   String?
+  SKU           String        @unique
+  unit_price    Decimal       @db.Decimal(10, 2)
+  sale_price    Decimal       @db.Decimal(10, 2)
+  current_stock Int           @default(0)
+  reorder_point Int?
+  image_url     String?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  transactions  Transaction[]
+
+  @@map("inventory_items")
+}
+
+model Transaction {
+  id                 Int           @id @default(autoincrement())
+  item               InventoryItem @relation(fields: [item_id], references: [id])
+  item_id            Int
+  transaction_type   String // 'sale', 'initial_stock', 'adjustment_increase', 'adjustment_decrease'
+  quantity           Int
+  transaction_date   DateTime      @default(now())
+  recorded_by        User          @relation("RecordedBy", fields: [user_id], references: [id])
+  user_id            Int
+  notes              String?
+  blockchain_tx_hash String? // New field for blockchain transaction hash
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+
+  @@map("transactions")
+}
